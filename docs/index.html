@@ -200,13 +200,25 @@
         .heatmap-shell {
             display: grid;
             grid-template-columns: 28px minmax(0, 1fr);
-            grid-template-rows: 18px auto;
-            gap: 8px 8px;
+            gap: 8px;
             align-items: start;
         }
 
-        .heatmap-months {
+        .heatmap-scroll {
             grid-column: 2;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0 8px;
+            scrollbar-width: thin;
+            scrollbar-color: #2d333b transparent;
+        }
+
+        .heatmap-inner {
+            width: max-content;
+            margin: 0 auto;
+        }
+
+        .heatmap-months {
             display: grid;
             grid-auto-flow: column;
             grid-auto-columns: 10px;
@@ -215,6 +227,7 @@
             color: var(--muted);
             font-size: 0.72rem;
             line-height: 1;
+            margin-bottom: 8px;
         }
 
         .heatmap-month {
@@ -238,23 +251,13 @@
             height: 10px;
         }
 
-        .heatmap-scroll {
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 0 8px;
-            scrollbar-width: thin;
-            scrollbar-color: #2d333b transparent;
-        }
-
         .heatmap-grid {
             display: grid;
             grid-auto-flow: column;
             grid-template-rows: repeat(7, 10px);
             grid-auto-columns: 10px;
             gap: 4px;
-            justify-content: center;
             width: max-content;
-            margin: 0 auto;
         }
 
         .heatmap-day {
@@ -405,6 +408,10 @@
                 gap: 6px;
             }
 
+            .heatmap-inner {
+                margin: 0;
+            }
+
             .heatmap-months,
             .heatmap-grid {
                 grid-auto-columns: 8px;
@@ -546,7 +553,6 @@
     <section class="heatmap">
         <div class="heatmap-header">Contribution Heatmap</div>
         <div class="heatmap-shell">
-            <div id="heatmapMonths" class="heatmap-months" aria-hidden="true"></div>
             <div class="heatmap-weekdays" aria-hidden="true">
                 <div class="heatmap-weekday"></div>
                 <div class="heatmap-weekday">Mon</div>
@@ -557,7 +563,10 @@
                 <div class="heatmap-weekday"></div>
             </div>
             <div class="heatmap-scroll">
-                <div id="heatmapGrid" class="heatmap-grid" aria-label="GitHub contribution heatmap"></div>
+                <div class="heatmap-inner">
+                    <div id="heatmapMonths" class="heatmap-months" aria-hidden="true"></div>
+                    <div id="heatmapGrid" class="heatmap-grid" aria-label="GitHub contribution heatmap"></div>
+                </div>
             </div>
         </div>
         <div class="heatmap-legend" aria-hidden="true">
