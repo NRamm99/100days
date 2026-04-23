@@ -423,7 +423,6 @@
     const USERNAME = "NRamm99";
     const TODAY = new Date().toISOString().slice(0, 10);
     const CONTRIBUTIONS_API = "https://github-contributions-api.jogruber.de/v4/" + USERNAME + "?y=last";
-    const STREAK_API = "https://api.franznkemaka.com/github-streak/stats/" + USERNAME;
 
     function formatDisplayDate(dateString) {
         if (!dateString) {
@@ -440,6 +439,55 @@
         }
 
         return formatDisplayDate(period.start) + " - " + formatDisplayDate(period.end);
+    }
+
+    function calculateCurrentStreak(days) {
+        const pastDays = days.filter(day => day.date <= TODAY);
+        if (pastDays.length === 0) {
+            return 0;
+        }
+
+        let index = pastDays.length - 1;
+        if (pastDays[index].count === 0 && pastDays[index].date === TODAY) {
+            index -= 1;
+        }
+
+        let streak = 0;
+        for (let i = index; i >= 0; i--) {
+            if (pastDays[i].count <= 0) {
+                break;
+            }
+            streak += 1;
+        }
+
+        return streak;
+    }
+
+    function calculateLongestStreak(days) {
+        let longest = { days: 0, start: "", end: "" };
+        let current = { days: 0, start: "", end: "" };
+
+        for (const day of days) {
+            if (day.date > TODAY) {
+                break;
+            }
+
+            if (day.count > 0) {
+                if (current.days === 0) {
+                    current.start = day.date;
+                }
+                current.days += 1;
+                current.end = day.date;
+
+                if (current.days > longest.days) {
+                    longest = { ...current };
+                }
+            } else {
+                current = { days: 0, start: "", end: "" };
+            }
+        }
+
+        return longest;
     }
 
     function getHeatLevel(count) {
@@ -534,25 +582,24 @@
         const gaugeFill = document.getElementById("gaugeFill");
 
         try {
-            const [contributionData, streakData] = await Promise.all([
-                fetchJson(CONTRIBUTIONS_API),
-                fetchJson(STREAK_API)
-            ]);
-
+            const contributionData = await fetchJson(CONTRIBUTIONS_API);
             const contributionDays = Array.isArray(contributionData.contributions)
                 ? contributionData.contributions
                 : [];
             const latestContributionDay = [...contributionDays]
                 .reverse()
                 .find(day => day.date <= TODAY);
-            const total = contributionDays.reduce((sum, day) => sum + day.count, 0);
-            const currentStreakDays = streakData.currentStreak?.days ?? 0;
-            const longestStreakDays = streakData.longestStreak?.days ?? 0;
+            const currentStreakDays = calculateCurrentStreak(contributionDays);
+            const longestStreak = calculateLongestStreak(contributionDays);
+            const total = contributionData.total?.lastYear ??
+                contributionDays
+                    .filter(day => day.date <= TODAY)
+                    .reduce((sum, day) => sum + day.count, 0);
 
             days.textContent = currentStreakDays;
             totalContributions.textContent = total;
-            longestStreak.textContent = longestStreakDays;
-            longestStreakPeriod.textContent = formatPeriod(streakData.longestStreak);
+            longestStreak.textContent = longestStreak.days;
+            longestStreakPeriod.textContent = formatPeriod(longestStreak);
             const progress = Math.max(0, Math.min(100, currentStreakDays));
             gaugeFillGlow.style.strokeDashoffset = String(100 - progress);
             gaugeFill.style.strokeDashoffset = String(100 - progress);
