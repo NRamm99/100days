@@ -110,10 +110,6 @@
             transition: stroke-dashoffset 0.5s ease;
         }
 
-        .gauge-center {
-            display: none;
-        }
-
         .days {
             position: relative;
             z-index: 2;
@@ -176,6 +172,13 @@
             font-size: 0.92rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
+        }
+
+        .stat-subtext {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.4;
         }
 
         .heatmap {
@@ -339,29 +342,29 @@
         <div class="counter-hero">
             <div class="gauge" aria-hidden="true">
                 <svg viewBox="0 0 120 70">
-                <defs>
-                    <filter id="gaugeGlow" x="-60%" y="-60%" width="220%" height="220%">
-                        <feGaussianBlur stdDeviation="3.5" result="blur"></feGaussianBlur>
-                        <feColorMatrix
-                                in="blur"
-                                type="matrix"
-                                values="1 0 0 0 0
-                                        0 1 0 0 0
-                                        0 0 1 0 0
-                                        0 0 0 0.65 0">
-                        </feColorMatrix>
-                    </filter>
-                </defs>
-                <path class="gauge-track" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
-                <path
-                        id="gaugeFillGlow"
-                        class="gauge-fill"
-                        d="M 15 60 A 45 45 0 0 1 105 60"
-                        pathLength="100"
-                        filter="url(#gaugeGlow)"
-                        opacity="0.95">
-                </path>
-                <path id="gaugeFill" class="gauge-fill" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
+                    <defs>
+                        <filter id="gaugeGlow" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur stdDeviation="3.5" result="blur"></feGaussianBlur>
+                            <feColorMatrix
+                                    in="blur"
+                                    type="matrix"
+                                    values="1 0 0 0 0
+                                            0 1 0 0 0
+                                            0 0 1 0 0
+                                            0 0 0 0.65 0">
+                            </feColorMatrix>
+                        </filter>
+                    </defs>
+                    <path class="gauge-track" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
+                    <path
+                            id="gaugeFillGlow"
+                            class="gauge-fill"
+                            d="M 15 60 A 45 45 0 0 1 105 60"
+                            pathLength="100"
+                            filter="url(#gaugeGlow)"
+                            opacity="0.95">
+                    </path>
+                    <path id="gaugeFill" class="gauge-fill" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
                 </svg>
             </div>
             <div id="days" class="days">...</div>
@@ -379,9 +382,10 @@
             <article class="stat">
                 <div class="stat-value with-flame">
                     <span id="longestStreak">...</span>
-                    <span class="stat-flame" aria-hidden="true">🔥</span>
+                    <span class="stat-flame" aria-hidden="true">&#128293;</span>
                 </div>
                 <div class="stat-label">Longest Streak</div>
+                <div id="longestStreakPeriod" class="stat-subtext">...</div>
             </article>
         </div>
     </section>
@@ -489,6 +493,7 @@
         const status = document.getElementById("status");
         const totalContributions = document.getElementById("totalContributions");
         const longestStreak = document.getElementById("longestStreak");
+        const longestStreakPeriod = document.getElementById("longestStreakPeriod");
         const gaugeFillGlow = document.getElementById("gaugeFillGlow");
         const gaugeFill = document.getElementById("gaugeFill");
 
@@ -500,6 +505,7 @@
                 days.textContent = "--";
                 totalContributions.textContent = "--";
                 longestStreak.textContent = "--";
+                longestStreakPeriod.textContent = "--";
                 gaugeFillGlow.style.strokeDashoffset = "100";
                 gaugeFill.style.strokeDashoffset = "100";
                 renderHeatmap([]);
@@ -510,6 +516,7 @@
             days.textContent = data.streakDays;
             totalContributions.textContent = data.totalContributions;
             longestStreak.textContent = data.longestStreakDays;
+            longestStreakPeriod.textContent = data.longestStreakPeriod || "--";
             const progress = Math.max(0, Math.min(100, data.streakDays));
             gaugeFillGlow.style.strokeDashoffset = String(100 - progress);
             gaugeFill.style.strokeDashoffset = String(100 - progress);
@@ -520,6 +527,7 @@
             days.textContent = "--";
             totalContributions.textContent = "--";
             longestStreak.textContent = "--";
+            longestStreakPeriod.textContent = "--";
             gaugeFillGlow.style.strokeDashoffset = "100";
             gaugeFill.style.strokeDashoffset = "100";
             renderHeatmap([]);

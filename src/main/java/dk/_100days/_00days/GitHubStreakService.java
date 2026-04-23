@@ -60,14 +60,15 @@ public class GitHubStreakService {
             }
 
             int streak = calculateCurrentStreak(days, LocalDate.now(clock));
-            int longestStreak = calculateLongestStreak(days);
+            StreakPeriod longestStreak = calculateLongestStreak(days);
             int totalContributions = calculateTotalContributions(days);
             ContributionDay latest = days.get(days.size() - 1);
 
             return new StreakData(
                     USERNAME,
                     streak,
-                    longestStreak,
+                    longestStreak.length(),
+                    formatPeriod(longestStreak),
                     totalContributions,
                     latest.date().format(DISPLAY_DATE_FORMATTER),
                     latest.count(),
@@ -145,20 +146,31 @@ public class GitHubStreakService {
         return streak;
     }
 
-    int calculateLongestStreak(List<ContributionDay> days) {
+    StreakPeriod calculateLongestStreak(List<ContributionDay> days) {
         int longest = 0;
         int current = 0;
+        LocalDate currentStart = null;
+        LocalDate longestStart = null;
+        LocalDate longestEnd = null;
 
         for (ContributionDay day : days) {
             if (day.count() > 0) {
+                if (current == 0) {
+                    currentStart = day.date();
+                }
                 current++;
-                longest = Math.max(longest, current);
+                if (current > longest) {
+                    longest = current;
+                    longestStart = currentStart;
+                    longestEnd = day.date();
+                }
             } else {
                 current = 0;
+                currentStart = null;
             }
         }
 
-        return longest;
+        return new StreakPeriod(longest, longestStart, longestEnd);
     }
 
     int calculateTotalContributions(List<ContributionDay> days) {
@@ -177,13 +189,25 @@ public class GitHubStreakService {
         return heatmapDays;
     }
 
+    String formatPeriod(StreakPeriod streakPeriod) {
+        if (streakPeriod.start() == null || streakPeriod.end() == null) {
+            return "";
+        }
+        return streakPeriod.start().format(DISPLAY_DATE_FORMATTER) + " - " +
+                streakPeriod.end().format(DISPLAY_DATE_FORMATTER);
+    }
+
     record ContributionDay(LocalDate date, int count) {
+    }
+
+    record StreakPeriod(int length, LocalDate start, LocalDate end) {
     }
 
     public record StreakData(
             String username,
             int streakDays,
             int longestStreakDays,
+            String longestStreakPeriod,
             int totalContributions,
             String latestDate,
             int latestContributionCount,
@@ -191,7 +215,7 @@ public class GitHubStreakService {
             boolean unavailable
     ) {
         static StreakData unavailable(String username) {
-            return new StreakData(username, 0, 0, 0, "", 0, List.of(), true);
+            return new StreakData(username, 0, 0, "", 0, "", 0, List.of(), true);
         }
     }
 
