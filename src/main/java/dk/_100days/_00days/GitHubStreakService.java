@@ -15,7 +15,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +25,7 @@ import java.util.regex.Pattern;
 public class GitHubStreakService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM-yyyy");
     private static final String USERNAME = "NRamm99";
     private static final Pattern CONTRIBUTION_COUNT_PATTERN = Pattern.compile("(\\d+) contribution");
 
@@ -62,7 +65,7 @@ public class GitHubStreakService {
             return new StreakData(
                     USERNAME,
                     streak,
-                    latest.date().format(DATE_FORMATTER),
+                    latest.date().format(DISPLAY_DATE_FORMATTER),
                     latest.count(),
                     false
             );
@@ -77,6 +80,7 @@ public class GitHubStreakService {
     List<ContributionDay> parseContributionDays(String html) {
         Document document = Jsoup.parse(html);
         List<ContributionDay> days = new ArrayList<>();
+        Map<String, Integer> countsByDayId = parseContributionCounts(document);
 
         for (Element day : document.select(".ContributionCalendar-day[data-date]")) {
             String date = day.attr("data-date");
@@ -86,7 +90,7 @@ public class GitHubStreakService {
 
             days.add(new ContributionDay(
                     LocalDate.parse(date, DATE_FORMATTER),
-                    extractContributionCount(day)
+                    countsByDayId.getOrDefault(day.id(), 0)
             ));
         }
 
@@ -94,18 +98,17 @@ public class GitHubStreakService {
         return days;
     }
 
-    private int extractContributionCount(Element day) {
-        Element tooltip = day.nextElementSibling();
-        if (tooltip == null || !"tool-tip".equals(tooltip.tagName())) {
-            return 0;
+    private Map<String, Integer> parseContributionCounts(Document document) {
+        Map<String, Integer> countsByDayId = new HashMap<>();
+
+        for (Element tooltip : document.select("tool-tip[for]")) {
+            Matcher matcher = CONTRIBUTION_COUNT_PATTERN.matcher(tooltip.text());
+            if (matcher.find()) {
+                countsByDayId.put(tooltip.attr("for"), Integer.parseInt(matcher.group(1)));
+            }
         }
 
-        Matcher matcher = CONTRIBUTION_COUNT_PATTERN.matcher(tooltip.text());
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(1));
-        }
-
-        return 0;
+        return countsByDayId;
     }
 
     int calculateCurrentStreak(List<ContributionDay> days, LocalDate today) {
