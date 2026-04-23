@@ -590,7 +590,7 @@
                 .reverse()
                 .find(day => day.date <= TODAY);
             const currentStreakDays = calculateCurrentStreak(contributionDays);
-            const longestStreak = calculateLongestStreak(contributionDays);
+            const longestStreakData = calculateLongestStreak(contributionDays);
             const total = contributionData.total?.lastYear ??
                 contributionDays
                     .filter(day => day.date <= TODAY)
@@ -598,8 +598,8 @@
 
             days.textContent = currentStreakDays;
             totalContributions.textContent = total;
-            longestStreak.textContent = longestStreak.days;
-            longestStreakPeriod.textContent = formatPeriod(longestStreak);
+            longestStreak.textContent = longestStreakData.days;
+            longestStreakPeriod.textContent = formatPeriod(longestStreakData);
             const progress = Math.max(0, Math.min(100, currentStreakDays));
             gaugeFillGlow.style.strokeDashoffset = String(100 - progress);
             gaugeFill.style.strokeDashoffset = String(100 - progress);
