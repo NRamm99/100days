@@ -60,13 +60,18 @@ public class GitHubStreakService {
             }
 
             int streak = calculateCurrentStreak(days, LocalDate.now(clock));
+            int longestStreak = calculateLongestStreak(days);
+            int totalContributions = calculateTotalContributions(days);
             ContributionDay latest = days.get(days.size() - 1);
 
             return new StreakData(
                     USERNAME,
                     streak,
+                    longestStreak,
+                    totalContributions,
                     latest.date().format(DISPLAY_DATE_FORMATTER),
                     latest.count(),
+                    toHeatmapDays(days),
                     false
             );
         } catch (InterruptedException e) {
@@ -140,18 +145,56 @@ public class GitHubStreakService {
         return streak;
     }
 
+    int calculateLongestStreak(List<ContributionDay> days) {
+        int longest = 0;
+        int current = 0;
+
+        for (ContributionDay day : days) {
+            if (day.count() > 0) {
+                current++;
+                longest = Math.max(longest, current);
+            } else {
+                current = 0;
+            }
+        }
+
+        return longest;
+    }
+
+    int calculateTotalContributions(List<ContributionDay> days) {
+        int total = 0;
+        for (ContributionDay day : days) {
+            total += day.count();
+        }
+        return total;
+    }
+
+    List<HeatmapDay> toHeatmapDays(List<ContributionDay> days) {
+        List<HeatmapDay> heatmapDays = new ArrayList<>();
+        for (ContributionDay day : days) {
+            heatmapDays.add(new HeatmapDay(day.date().format(DATE_FORMATTER), day.count()));
+        }
+        return heatmapDays;
+    }
+
     record ContributionDay(LocalDate date, int count) {
     }
 
     public record StreakData(
             String username,
             int streakDays,
+            int longestStreakDays,
+            int totalContributions,
             String latestDate,
             int latestContributionCount,
+            List<HeatmapDay> heatmapDays,
             boolean unavailable
     ) {
         static StreakData unavailable(String username) {
-            return new StreakData(username, 0, "", 0, true);
+            return new StreakData(username, 0, 0, 0, "", 0, List.of(), true);
         }
+    }
+
+    public record HeatmapDay(String date, int count) {
     }
 }

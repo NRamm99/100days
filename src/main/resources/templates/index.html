@@ -6,12 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
-            --bg: #f5f1e8;
-            --card: #fffaf1;
-            --line: #d9cdb9;
-            --text: #1e1b18;
-            --muted: #6f665d;
-            --accent: #1f7a4d;
+            --bg: #0d1117;
+            --bg-glow: rgba(56, 139, 253, 0.14);
+            --card: #161b22;
+            --panel: #0f141b;
+            --line: #2d333b;
+            --text: #e6edf3;
+            --muted: #9da7b3;
+            --accent: #3fb950;
+            --shadow: rgba(0, 0, 0, 0.35);
         }
 
         * {
@@ -24,7 +27,7 @@
             font-family: Georgia, "Times New Roman", serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top, rgba(31, 122, 77, 0.12), transparent 35%),
+                radial-gradient(circle at top, var(--bg-glow), transparent 35%),
                 var(--bg);
             display: grid;
             place-items: center;
@@ -32,12 +35,12 @@
         }
 
         main {
-            width: min(680px, 100%);
+            width: min(940px, 100%);
             background: var(--card);
             border: 1px solid var(--line);
             border-radius: 20px;
             padding: 32px;
-            box-shadow: 0 20px 60px rgba(30, 27, 24, 0.08);
+            box-shadow: 0 24px 60px var(--shadow);
         }
 
         h1 {
@@ -53,21 +56,79 @@
 
         .counter {
             margin: 28px 0;
-            padding: 24px;
+            padding: 24px 24px 28px;
             border-radius: 16px;
-            background: #f0eadc;
+            background: var(--panel);
             border: 1px solid var(--line);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .goal-label {
+            position: relative;
+            z-index: 2;
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .counter-hero {
+            position: relative;
+            min-height: 220px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 10px;
+        }
+
+        .gauge {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            width: min(380px, 100%);
+            margin: 0 auto;
+            overflow: visible;
+        }
+
+        .gauge-track,
+        .gauge-fill {
+            fill: none;
+            stroke-width: 14;
+            stroke-linecap: round;
+        }
+
+        .gauge-track {
+            stroke: #253041;
+        }
+
+        .gauge-fill {
+            stroke: var(--accent);
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .gauge-center {
+            display: none;
         }
 
         .days {
+            position: relative;
+            z-index: 2;
+            transform: translateY(18px);
             font-size: clamp(3rem, 12vw, 5.5rem);
             line-height: 1;
             font-weight: 700;
             color: var(--accent);
+            text-shadow: 0 0 28px rgba(63, 185, 80, 0.18);
         }
 
         .label {
-            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+            margin-top: 2px;
             font-size: 1rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
@@ -77,20 +138,190 @@
             margin-top: 24px;
         }
 
-        .streak-card img {
-            width: 100%;
-            border-radius: 12px;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stat {
+            padding: 18px;
+            border-radius: 14px;
             border: 1px solid var(--line);
-            display: block;
+            background: var(--panel);
+        }
+
+        .stat-value {
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            line-height: 1;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-value.with-flame {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .stat-flame {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .stat-label {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 0.92rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .heatmap {
+            margin-top: 24px;
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: var(--panel);
+        }
+
+        .heatmap-header {
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 0.92rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .heatmap-shell {
+            display: grid;
+            grid-template-columns: 28px minmax(0, 1fr);
+            grid-template-rows: 18px auto;
+            gap: 8px 8px;
+            align-items: start;
+        }
+
+        .heatmap-months {
+            grid-column: 2;
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 10px;
+            gap: 4px;
+            height: 18px;
+            color: var(--muted);
+            font-size: 0.72rem;
+            line-height: 1;
+        }
+
+        .heatmap-month {
+            justify-self: start;
+            white-space: nowrap;
+        }
+
+        .heatmap-weekdays {
+            grid-column: 1;
+            grid-row: 2;
+            display: grid;
+            grid-template-rows: repeat(7, 10px);
+            gap: 4px;
+            color: var(--muted);
+            font-size: 0.72rem;
+            line-height: 10px;
+            padding-top: 1px;
+        }
+
+        .heatmap-weekday {
+            height: 10px;
+        }
+
+        .heatmap-scroll {
+            overflow: hidden;
+            padding: 0 8px;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: repeat(7, 10px);
+            grid-auto-columns: 10px;
+            gap: 4px;
+            justify-content: center;
+            width: max-content;
+            margin: 0 auto;
+        }
+
+        .heatmap-day {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background: #1b222c;
+        }
+
+        .heatmap-day.level-1 {
+            background: #12341e;
+        }
+
+        .heatmap-day.level-2 {
+            background: #1f6a39;
+        }
+
+        .heatmap-day.level-3 {
+            background: #2ea043;
+        }
+
+        .heatmap-day.level-4 {
+            background: #56d364;
+        }
+
+        .heatmap-legend {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .legend-box {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background: #1b222c;
+        }
+
+        .legend-box.level-1 {
+            background: #12341e;
+        }
+
+        .legend-box.level-2 {
+            background: #1f6a39;
+        }
+
+        .legend-box.level-3 {
+            background: #2ea043;
+        }
+
+        .legend-box.level-4 {
+            background: #56d364;
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .footer {
+            position: relative;
+            z-index: 1;
             margin-top: 20px;
             font-size: 0.95rem;
         }
 
         a {
-            color: var(--text);
+            color: #7dcfff;
         }
     </style>
 </head>
@@ -104,22 +335,162 @@
     </p>
 
     <section class="counter" aria-live="polite">
-        <div id="days" class="days">...</div>
+        <div class="goal-label">100 day goal</div>
+        <div class="counter-hero">
+            <div class="gauge" aria-hidden="true">
+                <svg viewBox="0 0 120 70">
+                <defs>
+                    <filter id="gaugeGlow" x="-60%" y="-60%" width="220%" height="220%">
+                        <feGaussianBlur stdDeviation="3.5" result="blur"></feGaussianBlur>
+                        <feColorMatrix
+                                in="blur"
+                                type="matrix"
+                                values="1 0 0 0 0
+                                        0 1 0 0 0
+                                        0 0 1 0 0
+                                        0 0 0 0.65 0">
+                        </feColorMatrix>
+                    </filter>
+                </defs>
+                <path class="gauge-track" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
+                <path
+                        id="gaugeFillGlow"
+                        class="gauge-fill"
+                        d="M 15 60 A 45 45 0 0 1 105 60"
+                        pathLength="100"
+                        filter="url(#gaugeGlow)"
+                        opacity="0.95">
+                </path>
+                <path id="gaugeFill" class="gauge-fill" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
+                </svg>
+            </div>
+            <div id="days" class="days">...</div>
+        </div>
         <div class="label">Days in a row</div>
         <p id="status" class="footer">Loading current streak...</p>
     </section>
 
     <section class="streak-card">
-        <img
-                src="https://github-readme-streak-stats.herokuapp.com?user=NRamm99&theme=default&hide_border=true"
-                alt="GitHub streak chart for NRamm99">
+        <div class="stats-grid">
+            <article class="stat">
+                <div id="totalContributions" class="stat-value">...</div>
+                <div class="stat-label">Total Contributions</div>
+            </article>
+            <article class="stat">
+                <div class="stat-value with-flame">
+                    <span id="longestStreak">...</span>
+                    <span class="stat-flame" aria-hidden="true">🔥</span>
+                </div>
+                <div class="stat-label">Longest Streak</div>
+            </article>
+        </div>
+    </section>
+
+    <section class="heatmap">
+        <div class="heatmap-header">Contribution Heatmap</div>
+        <div class="heatmap-shell">
+            <div id="heatmapMonths" class="heatmap-months" aria-hidden="true"></div>
+            <div class="heatmap-weekdays" aria-hidden="true">
+                <div class="heatmap-weekday"></div>
+                <div class="heatmap-weekday">Mon</div>
+                <div class="heatmap-weekday"></div>
+                <div class="heatmap-weekday">Wed</div>
+                <div class="heatmap-weekday"></div>
+                <div class="heatmap-weekday">Fri</div>
+                <div class="heatmap-weekday"></div>
+            </div>
+            <div class="heatmap-scroll">
+                <div id="heatmapGrid" class="heatmap-grid" aria-label="GitHub contribution heatmap"></div>
+            </div>
+        </div>
+        <div class="heatmap-legend" aria-hidden="true">
+            <span>Less</span>
+            <span class="legend-box"></span>
+            <span class="legend-box level-1"></span>
+            <span class="legend-box level-2"></span>
+            <span class="legend-box level-3"></span>
+            <span class="legend-box level-4"></span>
+            <span>More</span>
+        </div>
     </section>
 </main>
 
 <script>
+    function getHeatLevel(count) {
+        if (count <= 0) return 0;
+        if (count <= 2) return 1;
+        if (count <= 4) return 2;
+        if (count <= 7) return 3;
+        return 4;
+    }
+
+    function renderHeatmap(days) {
+        const heatmapGrid = document.getElementById("heatmapGrid");
+        const heatmapMonths = document.getElementById("heatmapMonths");
+        heatmapGrid.innerHTML = "";
+        heatmapMonths.innerHTML = "";
+
+        const last365Days = days.slice(-365);
+        if (last365Days.length === 0) {
+            return;
+        }
+
+        const paddedDays = [...last365Days];
+        const firstDay = new Date(last365Days[0].date);
+        const leadingEmptyDays = firstDay.getDay();
+
+        for (let i = 0; i < leadingEmptyDays; i++) {
+            paddedDays.unshift({ date: "", count: 0, empty: true });
+        }
+
+        while (paddedDays.length % 7 !== 0) {
+            paddedDays.push({ date: "", count: 0, empty: true });
+        }
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const weekCount = paddedDays.length / 7;
+        let previousMonthIndex = null;
+
+        for (let weekIndex = 0; weekIndex < weekCount; weekIndex++) {
+            const label = document.createElement("div");
+            label.className = "heatmap-month";
+
+            const week = paddedDays.slice(weekIndex * 7, weekIndex * 7 + 7);
+            const firstRealDay = week.find(day => !day.empty);
+            if (firstRealDay) {
+                const monthIndex = new Date(firstRealDay.date).getMonth();
+                if (weekIndex === 0 || monthIndex !== previousMonthIndex) {
+                    label.textContent = monthNames[monthIndex];
+                }
+                previousMonthIndex = monthIndex;
+            }
+
+            heatmapMonths.appendChild(label);
+        }
+
+        for (const day of paddedDays) {
+            const cell = document.createElement("div");
+            if (day.empty) {
+                cell.className = "heatmap-day";
+                cell.style.visibility = "hidden";
+                heatmapGrid.appendChild(cell);
+                continue;
+            }
+
+            const level = getHeatLevel(day.count);
+            cell.className = "heatmap-day level-" + level;
+            cell.title = day.date + ": " + day.count + " contributions";
+            heatmapGrid.appendChild(cell);
+        }
+    }
+
     async function loadStreak() {
         const days = document.getElementById("days");
         const status = document.getElementById("status");
+        const totalContributions = document.getElementById("totalContributions");
+        const longestStreak = document.getElementById("longestStreak");
+        const gaugeFillGlow = document.getElementById("gaugeFillGlow");
+        const gaugeFill = document.getElementById("gaugeFill");
 
         try {
             const response = await fetch("/api/streak");
@@ -127,15 +498,31 @@
 
             if (data.unavailable) {
                 days.textContent = "--";
+                totalContributions.textContent = "--";
+                longestStreak.textContent = "--";
+                gaugeFillGlow.style.strokeDashoffset = "100";
+                gaugeFill.style.strokeDashoffset = "100";
+                renderHeatmap([]);
                 status.textContent = "Could not load the streak right now.";
                 return;
             }
 
             days.textContent = data.streakDays;
+            totalContributions.textContent = data.totalContributions;
+            longestStreak.textContent = data.longestStreakDays;
+            const progress = Math.max(0, Math.min(100, data.streakDays));
+            gaugeFillGlow.style.strokeDashoffset = String(100 - progress);
+            gaugeFill.style.strokeDashoffset = String(100 - progress);
+            renderHeatmap(data.heatmapDays);
             status.textContent = "Latest contribution day: " + data.latestDate +
                 " (" + data.latestContributionCount + " contributions)";
         } catch (error) {
             days.textContent = "--";
+            totalContributions.textContent = "--";
+            longestStreak.textContent = "--";
+            gaugeFillGlow.style.strokeDashoffset = "100";
+            gaugeFill.style.strokeDashoffset = "100";
+            renderHeatmap([]);
             status.textContent = "Could not load the streak right now.";
         }
     }
