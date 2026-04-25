@@ -200,12 +200,14 @@
         .heatmap-shell {
             display: grid;
             grid-template-columns: 28px minmax(0, 1fr);
-            gap: 8px;
+            grid-template-rows: 26px auto;
+            column-gap: 8px;
             align-items: start;
         }
 
         .heatmap-scroll {
             grid-column: 2;
+            grid-row: 1 / span 2;
             overflow-x: auto;
             overflow-y: hidden;
             padding: 0 8px;
@@ -244,7 +246,6 @@
             color: var(--muted);
             font-size: 0.72rem;
             line-height: 10px;
-            padding-top: 1px;
         }
 
         .heatmap-weekday {
@@ -315,6 +316,87 @@
 
         .legend-box.level-4 {
             background: #56d364;
+        }
+
+        .next-update {
+            margin-top: 24px;
+            padding: 20px 22px 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(86, 211, 100, 0.18);
+            background:
+                    radial-gradient(circle at top right, rgba(86, 211, 100, 0.14), transparent 42%),
+                    linear-gradient(180deg, rgba(31, 106, 57, 0.16), rgba(8, 12, 18, 0.88));
+            box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+                    0 18px 36px rgba(0, 0, 0, 0.2);
+        }
+
+        .next-update-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .next-update-title {
+            color: #f3f6fb;
+            font-size: 0.94rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .next-update-value {
+            color: #7ee787;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .next-update-track {
+            position: relative;
+            overflow: hidden;
+            height: 22px;
+            border-radius: 999px;
+            background: rgba(11, 18, 27, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+        }
+
+        .next-update-fill {
+            position: relative;
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #1f6a39 0%, #2ea043 38%, #56d364 72%, #9be9a8 100%);
+            box-shadow: 0 0 22px rgba(86, 211, 100, 0.22);
+            transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .next-update-fill::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.16) 42%, transparent 75%);
+            transform: translateX(-100%);
+            animation: next-update-shimmer 2.8s ease-in-out infinite;
+        }
+
+        @keyframes next-update-shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            55%,
+            100% {
+                transform: translateX(180%);
+            }
+        }
+
+        .next-update-caption {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.8rem;
         }
 
         @media (max-width: 820px) {
@@ -405,7 +487,8 @@
 
             .heatmap-shell {
                 grid-template-columns: 20px minmax(0, 1fr);
-                gap: 6px;
+                grid-template-rows: 26px auto;
+                column-gap: 6px;
             }
 
             .heatmap-inner {
@@ -439,6 +522,18 @@
                 justify-content: flex-start;
                 gap: 5px;
                 font-size: 0.75rem;
+            }
+
+            .next-update {
+                padding: 16px 14px 18px;
+            }
+
+            .next-update-header {
+                margin-bottom: 8px;
+            }
+
+            .next-update-track {
+                height: 18px;
             }
 
             .footer {
@@ -579,12 +674,24 @@
             <span>More</span>
         </div>
     </section>
+
+    <section class="next-update" aria-labelledby="nextUpdateTitle">
+        <div class="next-update-header">
+            <div id="nextUpdateTitle" class="next-update-title">Next update</div>
+            <div id="nextUpdateValue" class="next-update-value">5%</div>
+        </div>
+        <div class="next-update-track" role="progressbar" aria-labelledby="nextUpdateTitle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5">
+            <div id="nextUpdateFill" class="next-update-fill"></div>
+        </div>
+        <div class="next-update-caption">Jeg arbejder pt på at bygge hjemmesiden selv, uden AI.</div>
+    </section>
 </main>
 
 <script>
     const USERNAME = "NRamm99";
     const TODAY = new Date().toISOString().slice(0, 10);
     const CONTRIBUTIONS_API = "https://github-contributions-api.jogruber.de/v4/" + USERNAME + "?y=last";
+    const NEXT_UPDATE_PROGRESS = 5;
 
     function formatDisplayDate(dateString) {
         if (!dateString) {
@@ -658,6 +765,17 @@
         if (count <= 4) return 2;
         if (count <= 7) return 3;
         return 4;
+    }
+
+    function renderNextUpdateProgress(progress) {
+        const normalizedProgress = Math.max(0, Math.min(100, progress));
+        const nextUpdateFill = document.getElementById("nextUpdateFill");
+        const nextUpdateValue = document.getElementById("nextUpdateValue");
+        const nextUpdateTrack = nextUpdateFill.parentElement;
+
+        nextUpdateFill.style.width = normalizedProgress + "%";
+        nextUpdateValue.textContent = normalizedProgress + "%";
+        nextUpdateTrack.setAttribute("aria-valuenow", String(normalizedProgress));
     }
 
     function renderHeatmap(days) {
@@ -782,6 +900,7 @@
         }
     }
 
+    renderNextUpdateProgress(NEXT_UPDATE_PROGRESS);
     loadStreak();
 </script>
 </body>
