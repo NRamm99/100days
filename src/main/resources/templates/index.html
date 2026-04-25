@@ -687,11 +687,22 @@
     </section>
 </main>
 
+<script id="contributionsSnapshot" type="application/json"></script>
 <script>
     const USERNAME = "NRamm99";
-    const TODAY = new Date().toISOString().slice(0, 10);
+    const CONTRIBUTIONS_JSON_PATH = "./contributions.json";
     const CONTRIBUTIONS_API = "https://github-contributions-api.jogruber.de/v4/" + USERNAME + "?y=last";
     const NEXT_UPDATE_PROGRESS = 5;
+
+    function getLocalIsoDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        return year + "-" + month + "-" + day;
+    }
+
+    const TODAY = getLocalIsoDate();
 
     function formatDisplayDate(dateString) {
         if (!dateString) {
@@ -852,6 +863,37 @@
         return response.json();
     }
 
+    function getEmbeddedContributionData() {
+        const snapshotElement = document.getElementById("contributionsSnapshot");
+        if (!snapshotElement) {
+            return null;
+        }
+
+        const snapshotText = snapshotElement.textContent.trim();
+        if (!snapshotText) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(snapshotText);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    async function fetchContributionData() {
+        const embeddedContributionData = getEmbeddedContributionData();
+        if (embeddedContributionData) {
+            return embeddedContributionData;
+        }
+
+        try {
+            return await fetchJson(CONTRIBUTIONS_JSON_PATH);
+        } catch (error) {
+            return fetchJson(CONTRIBUTIONS_API);
+        }
+    }
+
     async function loadStreak() {
         const days = document.getElementById("days");
         const status = document.getElementById("status");
@@ -862,7 +904,7 @@
         const gaugeFill = document.getElementById("gaugeFill");
 
         try {
-            const contributionData = await fetchJson(CONTRIBUTIONS_API);
+            const contributionData = await fetchContributionData();
             const contributionDays = Array.isArray(contributionData.contributions)
                 ? contributionData.contributions
                 : [];
