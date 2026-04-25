@@ -36,6 +36,9 @@ jobs:
       - name: Generate contributions snapshot
         run: node scripts/generate-contributions.mjs
 
+      - name: Prepare Pages site
+        run: node scripts/prepare-pages.mjs
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
