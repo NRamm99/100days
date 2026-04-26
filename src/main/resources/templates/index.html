@@ -693,6 +693,7 @@
     const CONTRIBUTIONS_JSON_PATH = "./contributions.json";
     const CONTRIBUTIONS_API = "https://github-contributions-api.jogruber.de/v4/" + USERNAME + "?y=last";
     const NEXT_UPDATE_PROGRESS = 5;
+    const SNAPSHOT_MAX_AGE_MINUTES = 60;
 
     function getLocalIsoDate() {
         const now = new Date();
@@ -881,17 +882,69 @@
         }
     }
 
+    function parseGeneratedAt(value) {
+        if (!value) {
+            return null;
+        }
+
+        const timestamp = Date.parse(value);
+        if (Number.isNaN(timestamp)) {
+            return null;
+        }
+
+        return timestamp;
+    }
+
+    function isContributionDataFresh(contributionData) {
+        const generatedAt = parseGeneratedAt(contributionData?.generatedAt);
+        if (generatedAt === null) {
+            return false;
+        }
+
+        const maxAgeMs = SNAPSHOT_MAX_AGE_MINUTES * 60 * 1000;
+        return (Date.now() - generatedAt) <= maxAgeMs;
+    }
+
+    function getLatestContributionDate(contributionData) {
+        const contributionDays = Array.isArray(contributionData?.contributions)
+            ? contributionData.contributions
+            : [];
+        const latestContributionDay = [...contributionDays]
+            .reverse()
+            .find(day => day.date <= TODAY);
+
+        return latestContributionDay?.date ?? "";
+    }
+
+    function shouldUseSnapshot(contributionData) {
+        if (!contributionData) {
+            return false;
+        }
+
+        if (!isContributionDataFresh(contributionData)) {
+            return false;
+        }
+
+        const latestContributionDate = getLatestContributionDate(contributionData);
+        return latestContributionDate === TODAY || latestContributionDate === "";
+    }
+
     async function fetchContributionData() {
         const embeddedContributionData = getEmbeddedContributionData();
-        if (embeddedContributionData) {
+        if (shouldUseSnapshot(embeddedContributionData)) {
             return embeddedContributionData;
         }
 
         try {
-            return await fetchJson(CONTRIBUTIONS_JSON_PATH);
+            const contributionData = await fetchJson(CONTRIBUTIONS_JSON_PATH);
+            if (shouldUseSnapshot(contributionData)) {
+                return contributionData;
+            }
         } catch (error) {
-            return fetchJson(CONTRIBUTIONS_API);
+            // Fall through to the live API when the static snapshot is unavailable.
         }
+
+        return fetchJson(CONTRIBUTIONS_API);
     }
 
     async function loadStreak() {
