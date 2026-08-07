@@ -585,95 +585,7 @@
 </head>
 <body>
 <main>
-    <p>100 days of coding</p>
-    <h1>Keep the streak alive.</h1>
-    <p>
-        Public GitHub streak for
-        <a href="https://github.com/NRamm99" target="_blank" rel="noreferrer">NRamm99</a>.
-    </p>
-
-    <section class="counter" aria-live="polite">
-        <div class="goal-label">100 day goal</div>
-        <div class="counter-hero">
-            <div class="gauge" aria-hidden="true">
-                <svg viewBox="0 0 120 70">
-                    <defs>
-                        <filter id="gaugeGlow" x="-60%" y="-60%" width="220%" height="220%">
-                            <feGaussianBlur stdDeviation="3.5" result="blur"></feGaussianBlur>
-                            <feColorMatrix
-                                    in="blur"
-                                    type="matrix"
-                                    values="1 0 0 0 0
-                                            0 1 0 0 0
-                                            0 0 1 0 0
-                                            0 0 0 0.65 0">
-                            </feColorMatrix>
-                        </filter>
-                    </defs>
-                    <path class="gauge-track" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
-                    <path
-                            id="gaugeFillGlow"
-                            class="gauge-fill"
-                            d="M 15 60 A 45 45 0 0 1 105 60"
-                            pathLength="100"
-                            filter="url(#gaugeGlow)"
-                            opacity="0.95">
-                    </path>
-                    <path id="gaugeFill" class="gauge-fill" d="M 15 60 A 45 45 0 0 1 105 60" pathLength="100"></path>
-                </svg>
-            </div>
-            <div id="days" class="days">...</div>
-        </div>
-        <div class="label">Days in a row</div>
-        <p id="status" class="footer">Loading current streak...</p>
-    </section>
-
-    <section class="streak-card">
-        <div class="stats-grid">
-            <article class="stat">
-                <div id="totalContributions" class="stat-value">...</div>
-                <div class="stat-label">Total Contributions</div>
-            </article>
-            <article class="stat">
-                <div class="stat-value with-flame">
-                    <span id="longestStreak">...</span>
-                    <span class="stat-flame" aria-hidden="true">&#128293;</span>
-                </div>
-                <div class="stat-label">Longest Streak</div>
-                <div id="longestStreakPeriod" class="stat-subtext">...</div>
-            </article>
-        </div>
-    </section>
-
-    <section class="heatmap">
-        <div class="heatmap-header">Contribution Heatmap</div>
-        <div class="heatmap-shell">
-            <div class="heatmap-weekdays" aria-hidden="true">
-                <div class="heatmap-weekday"></div>
-                <div class="heatmap-weekday">Mon</div>
-                <div class="heatmap-weekday"></div>
-                <div class="heatmap-weekday">Wed</div>
-                <div class="heatmap-weekday"></div>
-                <div class="heatmap-weekday">Fri</div>
-                <div class="heatmap-weekday"></div>
-            </div>
-            <div class="heatmap-scroll">
-                <div class="heatmap-inner">
-                    <div id="heatmapMonths" class="heatmap-months" aria-hidden="true"></div>
-                    <div id="heatmapGrid" class="heatmap-grid" aria-label="GitHub contribution heatmap"></div>
-                </div>
-            </div>
-        </div>
-        <div class="heatmap-legend" aria-hidden="true">
-            <span>Less</span>
-            <span class="legend-box"></span>
-            <span class="legend-box level-1"></span>
-            <span class="legend-box level-2"></span>
-            <span class="legend-box level-3"></span>
-            <span class="legend-box level-4"></span>
-            <span>More</span>
-        </div>
-    </section>
+    <h1>Kommer snart...</h1>
 
     <section class="next-update" aria-labelledby="nextUpdateTitle">
         <div class="next-update-header">
@@ -683,7 +595,7 @@
         <div class="next-update-track" role="progressbar" aria-labelledby="nextUpdateTitle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5">
             <div id="nextUpdateFill" class="next-update-fill"></div>
         </div>
-        <div class="next-update-caption">TEST test</div>
+        <div class="next-update-caption">Jeg arbejder lige nu på en padel-hjemmeside</div>
     </section>
 </main>
 
@@ -692,7 +604,7 @@
     const USERNAME = "NRamm99";
     const CONTRIBUTIONS_JSON_PATH = "./contributions.json";
     const CONTRIBUTIONS_API = "https://github-contributions-api.jogruber.de/v4/" + USERNAME + "?y=last";
-    const NEXT_UPDATE_PROGRESS = 70;
+    const NEXT_UPDATE_PROGRESS = 10;
     const SNAPSHOT_MAX_AGE_MINUTES = 60;
 
     function getLocalIsoDate() {
